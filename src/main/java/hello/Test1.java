@@ -3,7 +3,7 @@ package hello;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import com.sf.dao.UserMapper;
+import com.sf.mapper.UserMapper;
 import com.sf.model.User;
 
 public class Test1 {

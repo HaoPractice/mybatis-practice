@@ -13,21 +13,22 @@
         http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<context:property-placeholder location="classpath:config/db.properties" />
-
-	<bean id="dataSource" class="org.apache.tomcat.dbcp.dbcp.BasicDataSource"
+	
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
 		destroy-method="close">
-		<property name="driverClassName" value="${jdbc.driverClass}" />
+		<property name="driverClass" value="${jdbc.driverClass}" />
 		<property name="password" value="${jdbc.password}" />
-		<property name="url" value="${jdbc.url}" />
-		<property name="username" value="${jdbc.username}" />
-		<property name="maxIdle" value="5" />
-		<property name="maxActive" value="50" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="maxIdleTime" value="10" />
+		<property name="maxPoolSize" value="50" />
 	</bean>
 
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="configLocation" value="classpath:config/sqlMapConfig.xml" />
 	</bean>
+
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.sf.mapper"></property>
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
@@ -48,9 +49,9 @@
 			<tx:method name="find*" propagation="SUPPORTS" />
 		</tx:attributes>
 	</tx:advice>
-	
+
 	<aop:config>
-		<aop:pointcut expression="execution(* com.sf.service..*.*(..))" id="service"/>
-		<aop:advisor advice-ref="txAdvice" pointcut-ref="service"/>
+		<aop:pointcut id="service" expression="execution(* com.sf.service..*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="service" />
 	</aop:config>
 </beans>
