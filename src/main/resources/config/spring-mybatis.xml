@@ -13,7 +13,10 @@
         http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<context:property-placeholder location="classpath:config/db.properties" />
-	
+	<!-- <context:property-placeholder location="classpath:config/db2.properties" 
+		/> -->
+	<!-- 当存在多个placeholder标签时，后面声明的会不生效 -->
+
 	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
 		destroy-method="close">
 		<property name="driverClass" value="${jdbc.driverClass}" />
@@ -23,12 +26,12 @@
 		<property name="maxIdleTime" value="10" />
 		<property name="maxPoolSize" value="50" />
 	</bean>
-
+	<!-- 配置session Factory -->
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="configLocation" value="classpath:config/sqlMapConfig.xml" />
 	</bean>
-
+	<!-- 配置需要扫描mapper的包 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.sf.mapper"></property>
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
