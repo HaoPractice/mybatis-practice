@@ -1,0 +1,23 @@
+package com.sf.test.mapper.strategy;
+
+import java.text.ParseException;
+import java.util.Date;
+
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.sf.strategy.mapper.TableSplitStrategy;
+import com.sf.test.AbstractBaseTestCase;
+
+public class TableSplitDateBasisStrategyTest extends AbstractBaseTestCase {
+  @Autowired
+  TableSplitStrategy<Date> tableSplitStrategy;
+  @Test
+  public void test() throws ParseException {
+    
+    System.out.println(tableSplitStrategy.getTableName(new Date(), "user"));
+    System.out.println(tableSplitStrategy.getTableName(DateUtils.parseDate("20160101", "yyyyMMdd"), "user"));
+  }
+
+}
