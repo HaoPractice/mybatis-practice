@@ -17,18 +17,37 @@
 		/> -->
 	<!-- 当存在多个placeholder标签时，后面声明的会不生效 -->
 
-	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+	<bean id="testDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
 		destroy-method="close">
 		<property name="driverClass" value="${jdbc.driverClass}" />
-		<property name="password" value="${jdbc.password}" />
-		<property name="jdbcUrl" value="${jdbc.url}" />
-		<property name="user" value="${jdbc.username}" />
+		<property name="jdbcUrl" value="${jdbc.test.url}" />
+		<property name="user" value="${jdbc.test.username}" />
+		<property name="password" value="${jdbc.test.password}" />
+		<property name="maxIdleTime" value="10" />
+		<property name="maxPoolSize" value="50" />
+	</bean>
+	<bean id="testTransactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="testDataSource" />
+	</bean>
+
+	<bean id="baseDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${jdbc.driverClass}" />
+		<property name="password" value="${jdbc.base.password}" />
+		<property name="jdbcUrl" value="${jdbc.base.url}" />
+		<property name="user" value="${jdbc.base.username}" />
 		<property name="maxIdleTime" value="10" />
 		<property name="maxPoolSize" value="50" />
 	</bean>
 	<!-- 配置session Factory -->
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<property name="dataSource" ref="dataSource" />
+		<property name="dataSource" ref="baseDataSource" />
+		<property name="plugins">
+			<list>
+				<bean class="com.sf.mapper.intercepter.MyInterceptor"/>
+			</list>
+		</property>
 		<property name="configLocation" value="classpath:config/sqlMapConfig.xml" />
 	</bean>
 	<!-- 配置需要扫描mapper的包 -->
@@ -36,16 +55,15 @@
 		<property name="basePackage" value="com.sf.mapper"></property>
 		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
 	</bean>
-
 	<bean id="transactionManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource" ref="dataSource" />
+		<property name="dataSource" ref="baseDataSource" />
 	</bean>
 
 	<tx:advice id="txAdvice" transaction-manager="transactionManager">
 		<tx:attributes>
 			<tx:method name="save*" propagation="REQUIRED" />
-			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRES_NEW" />
 			<tx:method name="delete*" propagation="REQUIRED" />
 			<tx:method name="update*" propagation="REQUIRED" />
 			<tx:method name="select*" propagation="SUPPORTS" />
@@ -54,7 +72,9 @@
 	</tx:advice>
 
 	<aop:config>
+		<aop:pointcut id="mapper" expression="execution(* com.sf.mapper..*.*(..))" />
 		<aop:pointcut id="service" expression="execution(* com.sf.service..*.*(..))" />
 		<aop:advisor advice-ref="txAdvice" pointcut-ref="service" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="mapper" />
 	</aop:config>
 </beans>
