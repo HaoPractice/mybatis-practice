@@ -20,59 +20,63 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 import org.apache.ibatis.session.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.web.ResourceProperties.Strategy;
 
-import com.sf.mapper.annotation.TableSplit;
+import com.sf.common.dao.annotation.SplitTable;
+import com.sf.common.dao.strategy.StrategyManager;
 
 
-@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class ,Integer.class}) })  
+@Intercepts({@Signature(type = StatementHandler.class, method = "prepare",
+    args = {Connection.class, Integer.class})})
 public class MyInterceptor implements Interceptor {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  
+
   private static final ObjectFactory DEFAULT_OBJECT_FACTORY = new DefaultObjectFactory();
-  private static final ObjectWrapperFactory DEFAULT_OBJECT_WRAPPER_FACTORY = new DefaultObjectWrapperFactory();
-  
+  private static final ObjectWrapperFactory DEFAULT_OBJECT_WRAPPER_FACTORY =
+      new DefaultObjectWrapperFactory();
+
   @Override
   public Object intercept(Invocation invocation) throws Throwable {
-    
+
     StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
-    
-    MetaObject metaStatementHandler = MetaObject.forObject(statementHandler, DEFAULT_OBJECT_FACTORY, DEFAULT_OBJECT_WRAPPER_FACTORY,new DefaultReflectorFactory());
-    
+
+    MetaObject metaStatementHandler = MetaObject.forObject(statementHandler, DEFAULT_OBJECT_FACTORY,
+        DEFAULT_OBJECT_WRAPPER_FACTORY, new DefaultReflectorFactory());
+
     BoundSql boundSql = (BoundSql) metaStatementHandler.getValue("delegate.boundSql");
-     Configuration configuration = (Configuration) metaStatementHandler.getValue("delegate.configuration");
+    Configuration configuration =
+        (Configuration) metaStatementHandler.getValue("delegate.configuration");
     Object parameterObject = metaStatementHandler.getValue("delegate.boundSql.parameterObject");
     doSplitTable(metaStatementHandler);
-    // 传递给下一个拦截器处理  
+    // 传递给下一个拦截器处理
     return invocation.proceed();
   }
 
   private void doSplitTable(MetaObject metaStatementHandler) throws ClassNotFoundException {
+//    String originalSql = (String) metaStatementHandler.getValue("delegate.boundSql.sql");
+//    if (originalSql != null && !originalSql.equals("")) {
+//      logger.debug("分表前的SQL：" + originalSql);
+//      MappedStatement mappedStatement =
+//          (MappedStatement) metaStatementHandler.getValue("delegate.mappedStatement");
+//      String id = mappedStatement.getId();
+//      String className = id.substring(0, id.lastIndexOf("."));
+//      Class<?> classObj = Class.forName(className);
+      // 根据配置自动生成分表SQL
+//      StrategyManager strategyManager =
+//          StrategyManager.getTargetTableName(tableSplitStrategyEnum, splitBasis, tableName);
+//      String convertedSql =
+//          originalSql.replaceAll(splitTable.value(), strategy.convert(splitTable.value()));
+//      metaStatementHandler.setValue("delegate.boundSql.sql", convertedSql);
+//      logger.debug("分表后的SQL：" + convertedSql);
+//    }
 
-    String originalSql = (String) metaStatementHandler.getValue("delegate.boundSql.sql");
-    if (originalSql != null && !originalSql.equals("")) {  
-        logger.info("分表前的SQL："+originalSql);
-        MappedStatement mappedStatement = (MappedStatement) metaStatementHandler.getValue("delegate.mappedStatement");
-        String id = mappedStatement.getId();
-        String className = id.substring(0, id.lastIndexOf("."));
-        Class<?> classObj = Class.forName(className);
-        // 根据配置自动生成分表SQL  
-        TableSplit tableSplit = classObj.getAnnotation(TableSplit.class);
-//        if (tableSplit != null && tableSplit.split()) {  
-//            StrategyManager strategyManager = ContextHelper.getStrategyManager();
-//            Strategy strategy=strategyManager.getStrategy(tableSplit.strategy());//获取分表策略来处理分表  
-//            String convertedSql=originalSql.replaceAll(tableSplit.value(), strategy.convert(tableSplit.value()));
-//            metaStatementHandler.setValue("delegate.boundSql.sql",convertedSql);
-//            log.info("分表后的SQL："+convertedSql);
-//        }
-    }
 
-    
   }
 
   @Override
   public Object plugin(Object target) {
-    // 当目标类是StatementHandler类型时，才包装目标类，否者直接返回目标本身,减少目标被代理的次数  
+    // 当目标类是StatementHandler类型时，才包装目标类，否者直接返回目标本身,减少目标被代理的次数
     if (target instanceof StatementHandler) {
       return Plugin.wrap(target, this);
     }
@@ -82,7 +86,7 @@ public class MyInterceptor implements Interceptor {
   @Override
   public void setProperties(Properties properties) {
     // TODO Auto-generated method stub
-    System.out.println(properties);
+//    System.out.println(properties);
   }
 
 }
